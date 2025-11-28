@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const Index = () => {
   const { data, isLoading, isError, dataUpdatedAt } = useQuery({
     queryKey: ["floodData"],
-    queryFn: getFloodData,
+    queryFn: async () => await getFloodData(),
     refetchInterval: 30 * 60 * 1000, // 30 minutes
     staleTime: 29 * 60 * 1000, // Consider data stale after 29 minutes
   });
