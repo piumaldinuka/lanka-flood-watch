@@ -16,7 +16,7 @@ const Index = () => {
   });
 
   useEffect(() => {
-    if (dataUpdatedAt) {
+    if (dataUpdatedAt && dataUpdatedAt > 0) {
       toast.success("Flood data updated", {
         description: "Latest information from Disaster Management Center",
       });
