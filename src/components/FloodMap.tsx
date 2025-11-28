@@ -1,34 +1,10 @@
-import { useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import { FloodLocation } from "@/types/flood";
 import "leaflet/dist/leaflet.css";
 
 interface FloodMapProps {
   locations: FloodLocation[];
 }
-
-// Component to set map bounds based on locations
-const MapBounds = ({ locations }: { locations: FloodLocation[] }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (locations && Array.isArray(locations) && locations.length > 0) {
-      try {
-        const bounds = locations
-          .filter(loc => loc.coordinates && Array.isArray(loc.coordinates) && loc.coordinates.length === 2)
-          .map(loc => loc.coordinates as [number, number]);
-        
-        if (bounds.length > 0) {
-          map.fitBounds(bounds, { padding: [50, 50] });
-        }
-      } catch (error) {
-        console.error('Error setting map bounds:', error);
-      }
-    }
-  }, [locations, map]);
-
-  return null;
-};
 
 const getSeverityColor = (severity: string): string => {
   switch (severity) {
@@ -76,7 +52,7 @@ export const FloodMap = ({ locations }: FloodMapProps) => {
   return (
     <MapContainer
       center={center}
-      zoom={8}
+      zoom={7}
       className="h-full w-full rounded-lg"
       style={{ background: "hsl(var(--muted))" }}
     >
@@ -84,21 +60,25 @@ export const FloodMap = ({ locations }: FloodMapProps) => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapBounds locations={locations} />
       {locations.map((location) => {
         // Validate each location before rendering
         if (!location || !location.id || !location.coordinates || !Array.isArray(location.coordinates)) {
           return null;
         }
         
+        const [lat, lng] = location.coordinates;
+        if (typeof lat !== 'number' || typeof lng !== 'number') {
+          return null;
+        }
+        
         return (
           <CircleMarker
             key={location.id}
-            center={location.coordinates as [number, number]}
-            radius={getSeverityRadius(location.severity)}
-            fillColor={getSeverityColor(location.severity)}
+            center={[lat, lng]}
+            radius={getSeverityRadius(location.severity || 'low')}
+            fillColor={getSeverityColor(location.severity || 'low')}
             fillOpacity={0.6}
-            color={getSeverityColor(location.severity)}
+            color={getSeverityColor(location.severity || 'low')}
             weight={2}
           >
             <Popup>
