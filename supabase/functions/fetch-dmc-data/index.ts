@@ -65,6 +65,36 @@ const estimateAffectedFamilies = (severity: string): number => {
   return Math.floor(base * (0.8 + Math.random() * 0.4));
 };
 
+// Safe timestamp parser with fallback
+const parseTimestamp = (utString: string | undefined, dateStr: string, timeStr: string): string => {
+  try {
+    // Try parsing the unix timestamp first
+    if (utString) {
+      const timestamp = parseFloat(utString);
+      if (!isNaN(timestamp) && timestamp > 0) {
+        const date = new Date(timestamp * 1000);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
+    }
+    
+    // Fallback: parse from date_str and time_str
+    if (dateStr && timeStr) {
+      const dateTimeStr = `${dateStr}T${timeStr}:00+05:30`; // Sri Lanka timezone
+      const date = new Date(dateTimeStr);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing timestamp:', error);
+  }
+  
+  // Final fallback: current time
+  return new Date().toISOString();
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -106,8 +136,20 @@ serve(async (req) => {
       throw new Error('No water level reports found');
     }
 
+    console.log('Latest report:', {
+      doc_id: latestReport.doc_id,
+      date_str: latestReport.date_str,
+      time_str: latestReport.time_str,
+      ut: latestReport.ut
+    });
+
     const reportId = latestReport.doc_id;
     const dateStr = latestReport.date_str;
+    
+    if (!dateStr || !reportId) {
+      throw new Error('Invalid report data: missing date_str or doc_id');
+    }
+    
     const year = dateStr.substring(0, 4);
     const decade = `${year.substring(0, 3)}0s`;
 
@@ -125,6 +167,8 @@ serve(async (req) => {
       console.log(`Successfully fetched ${blocks.length} data blocks`);
       
       // Create sample data based on known flood-prone districts
+      const lastUpdatedTime = parseTimestamp(latestReport.ut, latestReport.date_str, latestReport.time_str);
+      
       locationsData = Object.entries(districtCoordinates).slice(0, 10).map(([district, coords], idx) => {
         const baseWaterLevel = 0.5 + Math.random() * 2.5;
         const remarks = baseWaterLevel > 2 ? "Flood warning issued" : "Normal conditions";
@@ -138,7 +182,7 @@ serve(async (req) => {
           severity,
           waterLevel: parseFloat(baseWaterLevel.toFixed(2)),
           affectedFamilies: estimateAffectedFamilies(severity),
-          lastUpdated: new Date(parseFloat(latestReport.ut) * 1000).toISOString(),
+          lastUpdated: lastUpdatedTime,
           description: remarks
         };
       });
