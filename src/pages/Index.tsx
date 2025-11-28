@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FloodMap } from "@/components/FloodMap";
 import { FloodLegend } from "@/components/FloodLegend";
 import { FloodStats } from "@/components/FloodStats";
+import { FloodRiskAnalyzer } from "@/components/FloodRiskAnalyzer";
 import { getFloodData } from "@/lib/mockFloodData";
 import { Waves, Activity, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -125,6 +126,7 @@ const Index = () => {
               lastUpdated={data.lastSync}
             />
             <FloodLegend />
+            <FloodRiskAnalyzer floodData={data} />
           </aside>
 
           {/* Main Map Area */}
