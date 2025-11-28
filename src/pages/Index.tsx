@@ -47,6 +47,21 @@ const Index = () => {
     );
   }
 
+  // Additional safety check for data structure
+  if (!data.locations || !Array.isArray(data.locations) || data.locations.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Waves className="w-16 h-16 text-muted-foreground mx-auto" />
+          <p className="text-lg text-foreground">No flood data available</p>
+          <p className="text-sm text-muted-foreground">
+            Data from Disaster Management Center is currently unavailable
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
