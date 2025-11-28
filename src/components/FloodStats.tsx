@@ -37,6 +37,13 @@ export const FloodStats = ({
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    
     return date.toLocaleString("en-LK", {
       dateStyle: "medium",
       timeStyle: "short",
@@ -64,19 +71,19 @@ export const FloodStats = ({
         })}
       </div>
 
-      <Card className="shadow-md">
+      <Card className="shadow-md border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Last Updated</CardTitle>
-            <Droplet className="w-5 h-5 text-primary" />
+            <Droplet className="w-5 h-5 text-primary animate-pulse" />
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-lg font-semibold text-primary">
             {formatTime(lastUpdated)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Auto-refreshes every 30 minutes
+            Live monitoring • Auto-refresh enabled
           </p>
         </CardContent>
       </Card>
