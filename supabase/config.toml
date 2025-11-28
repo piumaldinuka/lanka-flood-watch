@@ -1,1 +1,4 @@
 project_id = "kycjshcgidcmiygwmkmj"
+
+[functions.analyze-flood-risk]
+verify_jwt = false
