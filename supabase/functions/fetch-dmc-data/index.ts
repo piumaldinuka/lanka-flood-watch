@@ -104,19 +104,6 @@ serve(async (req) => {
   }
 
   try {
-    // Parse request body for date filters
-    let startDate = '2025-12-17';
-    let endDate = '2025-12-18';
-    
-    try {
-      const body = await req.json();
-      if (body.startDate) startDate = body.startDate;
-      if (body.endDate) endDate = body.endDate || startDate;
-      console.log('Date filter:', { startDate, endDate });
-    } catch {
-      console.log('No body or invalid JSON, using default dates');
-    }
-
     console.log('Fetching latest DMC data from nuuuwan repository...');
     
     // Fetch the TSV file with latest DMC reports
@@ -130,7 +117,7 @@ serve(async (req) => {
     const tsvText = await tsvResponse.text();
     const lines = tsvText.trim().split('\n');
     
-    // Parse TSV header and find reports within date range
+    // Parse TSV header and find reports from 12/17/2025
     const headers = lines[0].split('\t');
     const waterLevelReports = lines.slice(1)
       .map(line => {
@@ -141,12 +128,11 @@ serve(async (req) => {
         });
         return record;
       })
-      .filter(record => {
-        if (!record.description?.toLowerCase().includes('water level')) return false;
-        const dateStr = record.date_str;
-        return dateStr >= startDate && dateStr <= endDate;
-      })
-      .slice(0, 10);
+      .filter(record => 
+        record.description?.toLowerCase().includes('water level') && 
+        (record.date_str === '2025-12-17' || record.date_str === '2025-12-18')
+      )
+      .slice(0, 10); // Get reports from 12/17/2025 and 12/18/2025
 
     console.log(`Found ${waterLevelReports.length} recent water level reports`);
 

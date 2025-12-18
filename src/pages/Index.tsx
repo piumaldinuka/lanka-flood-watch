@@ -8,25 +8,15 @@ import { Waves, Activity, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { DateRange } from "react-day-picker";
-import { format } from "date-fns";
 
 const Index = () => {
   const [isLive, setIsLive] = useState(true);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(2025, 11, 17), // Dec 17, 2025
-    to: new Date(2025, 11, 18),   // Dec 18, 2025
-  });
   
-  const { data, isLoading, isError, dataUpdatedAt, isFetching, refetch } = useQuery({
-    queryKey: ["floodData", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
-    queryFn: async () => {
-      const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined;
-      const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : startDate;
-      return await getFloodData(startDate, endDate);
-    },
-    refetchInterval: 5 * 60 * 1000,
-    staleTime: 4 * 60 * 1000,
+  const { data, isLoading, isError, dataUpdatedAt, isFetching } = useQuery({
+    queryKey: ["floodData"],
+    queryFn: async () => await getFloodData(),
+    refetchInterval: 5 * 60 * 1000, // 5 minutes for more real-time feel
+    staleTime: 4 * 60 * 1000, // Consider data stale after 4 minutes
     refetchOnWindowFocus: true,
   });
 
@@ -134,8 +124,6 @@ const Index = () => {
               totalAffected={data.totalAffected}
               criticalAreas={data.criticalAreas}
               lastUpdated={data.lastSync}
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
             />
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6">
               <FloodLegend />
