@@ -114,7 +114,7 @@ serve(async (req) => {
     const tsvText = await tsvResponse.text();
     const lines = tsvText.trim().split('\n');
     
-    // Parse TSV header and find the most recent water level report
+    // Parse TSV header and find reports from 12/17/2025
     const headers = lines[0].split('\t');
     const waterLevelReports = lines.slice(1)
       .map(line => {
@@ -125,8 +125,11 @@ serve(async (req) => {
         });
         return record;
       })
-      .filter(record => record.description?.toLowerCase().includes('water level'))
-      .slice(0, 5); // Get the 5 most recent reports
+      .filter(record => 
+        record.description?.toLowerCase().includes('water level') && 
+        record.date_str === '2025-12-17'
+      )
+      .slice(0, 5); // Get reports from 12/17/2025
 
     console.log(`Found ${waterLevelReports.length} recent water level reports`);
 
