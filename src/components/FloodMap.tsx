@@ -1,5 +1,6 @@
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import { FloodLocation } from "@/types/flood";
+import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 
 interface FloodMapProps {
@@ -36,7 +37,29 @@ const getSeverityRadius = (severity: string): number => {
   }
 };
 
+// Component to handle map resize
+const MapResizeHandler = () => {
+  const map = useMap();
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Initial invalidate to ensure proper sizing
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [map]);
+
+  return null;
+};
+
 export const FloodMap = ({ locations }: FloodMapProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   // Center of Sri Lanka
   const center: [number, number] = [7.8731, 80.7718];
 
@@ -50,11 +73,12 @@ export const FloodMap = ({ locations }: FloodMapProps) => {
   }
 
   return (
-    <MapContainer
-      center={center}
-      zoom={7}
-      className="h-full w-full rounded-lg"
-      style={{ background: "hsl(var(--muted))" }}
+    <div ref={containerRef} className="h-full w-full">
+      <MapContainer
+        center={center}
+        zoom={7}
+        className="h-full w-full rounded-lg"
+        style={{ background: "hsl(var(--muted))" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -114,6 +138,8 @@ export const FloodMap = ({ locations }: FloodMapProps) => {
           </CircleMarker>
         );
       })}
+      <MapResizeHandler />
     </MapContainer>
+    </div>
   );
 };
