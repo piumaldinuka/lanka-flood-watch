@@ -3,6 +3,7 @@ import { FloodMap } from "@/components/FloodMap";
 import { FloodLegend } from "@/components/FloodLegend";
 import { FloodStats } from "@/components/FloodStats";
 import { FloodRiskAnalyzer } from "@/components/FloodRiskAnalyzer";
+import { FloodTrendChart } from "@/components/FloodTrendChart";
 import { getFloodData } from "@/lib/mockFloodData";
 import { Waves, Activity, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -144,10 +145,11 @@ const Index = () => {
           </aside>
 
           {/* Main Map Area - Full width on mobile, show first */}
-          <section className="lg:col-span-3 order-1 lg:order-2">
-            <div className="h-[50vh] sm:h-[60vh] lg:h-[calc(100vh-200px)] min-h-[300px] rounded-lg overflow-hidden shadow-lg border border-border">
+          <section className="lg:col-span-3 order-1 lg:order-2 space-y-4 sm:space-y-6">
+            <div className="h-[50vh] sm:h-[55vh] lg:h-[calc(100vh-350px)] min-h-[280px] rounded-lg overflow-hidden shadow-lg border border-border">
               <FloodMap locations={data.locations} />
             </div>
+            <FloodTrendChart floodData={data} />
           </section>
         </div>
       </main>
