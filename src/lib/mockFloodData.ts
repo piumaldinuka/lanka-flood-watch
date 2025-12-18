@@ -1,11 +1,13 @@
 import { FloodData } from "@/types/flood";
 import { supabase } from "@/integrations/supabase/client";
 
-export const getFloodData = async (): Promise<FloodData> => {
+export const getFloodData = async (startDate?: string, endDate?: string): Promise<FloodData> => {
   try {
-    console.log('Fetching flood data from DMC API via edge function...');
+    console.log('Fetching flood data from DMC API via edge function...', { startDate, endDate });
     
-    const { data, error } = await supabase.functions.invoke('fetch-dmc-data');
+    const { data, error } = await supabase.functions.invoke('fetch-dmc-data', {
+      body: { startDate, endDate }
+    });
 
     if (error) {
       console.error('Error fetching from edge function:', error);
