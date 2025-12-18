@@ -77,34 +77,34 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background safe-area-inset">
       {/* Header */}
       <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Waves className="w-8 h-8 text-primary animate-pulse" />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-foreground">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Waves className="w-6 h-6 sm:w-8 sm:h-8 text-primary animate-pulse flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
                     Real-time Flood Map
                   </h1>
                   <Badge 
                     variant="outline" 
-                    className="flex items-center gap-1 border-green-500 text-green-500"
+                    className="flex items-center gap-1 border-green-500 text-green-500 flex-shrink-0"
                   >
                     <Activity 
-                      className={`w-3 h-3 ${isLive ? 'text-green-500' : 'text-green-300'}`} 
+                      className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isLive ? 'text-green-500' : 'text-green-300'}`} 
                     />
-                    <span className="text-xs">LIVE</span>
+                    <span className="text-[10px] sm:text-xs">LIVE</span>
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  Sri Lanka Disaster Management Center 🇱🇰
+                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <span className="truncate">Sri Lanka DMC 🇱🇰</span>
                   {isFetching && (
-                    <span className="flex items-center gap-1 text-primary">
-                      <RefreshCw className="w-3 h-3 animate-spin" />
-                      <span className="text-xs">Updating...</span>
+                    <span className="flex items-center gap-1 text-primary flex-shrink-0">
+                      <RefreshCw className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-spin" />
+                      <span className="text-[10px] sm:text-xs">Updating...</span>
                     </span>
                   )}
                 </p>
@@ -115,23 +115,25 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Sidebar - Stats and Legend */}
-          <aside className="lg:col-span-1 space-y-6">
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Stats and Legend - Stack on mobile, sidebar on desktop */}
+          <aside className="lg:col-span-1 space-y-4 sm:space-y-6 order-2 lg:order-1">
             <FloodStats
               totalLocations={data.locations.length}
               totalAffected={data.totalAffected}
               criticalAreas={data.criticalAreas}
               lastUpdated={data.lastSync}
             />
-            <FloodLegend />
-            <FloodRiskAnalyzer floodData={data} />
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6">
+              <FloodLegend />
+              <FloodRiskAnalyzer floodData={data} />
+            </div>
           </aside>
 
-          {/* Main Map Area */}
-          <section className="lg:col-span-3">
-            <div className="h-[calc(100vh-200px)] rounded-lg overflow-hidden shadow-lg border border-border">
+          {/* Main Map Area - Full width on mobile, show first */}
+          <section className="lg:col-span-3 order-1 lg:order-2">
+            <div className="h-[50vh] sm:h-[60vh] lg:h-[calc(100vh-200px)] min-h-[300px] rounded-lg overflow-hidden shadow-lg border border-border">
               <FloodMap locations={data.locations} />
             </div>
           </section>
@@ -139,13 +141,13 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-8 py-4 bg-card">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-1">
-            <Activity className="w-4 h-4 text-green-500" />
-            <span>Data updates automatically every 5 minutes</span>
+      <footer className="border-t border-border mt-6 sm:mt-8 py-3 sm:py-4 bg-card">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 text-center">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-1">
+            <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+            <span>Data updates every 5 minutes</span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
             Official data from Disaster Management Centre of Sri Lanka
           </p>
         </div>
