@@ -53,8 +53,8 @@ const calculateSeverity = (waterLevel: number, remarks: string): string => {
   return "low";
 };
 
-// Estimate affected families based on severity
-const estimateAffectedFamilies = (severity: string): number => {
+// Estimate affected families based on severity and district (deterministic)
+const estimateAffectedFamilies = (severity: string, districtName: string): number => {
   const baseMap: Record<string, number> = {
     "critical": 250,
     "high": 150,
@@ -62,7 +62,10 @@ const estimateAffectedFamilies = (severity: string): number => {
     "low": 25,
   };
   const base = baseMap[severity] || 50;
-  return Math.floor(base * (0.8 + Math.random() * 0.4));
+  // Use district name hash for consistent variation
+  const hash = districtName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const variation = 0.8 + (hash % 40) / 100; // 0.8 to 1.2 based on name
+  return Math.floor(base * variation);
 };
 
 // Safe timestamp parser with fallback
@@ -173,7 +176,9 @@ serve(async (req) => {
       const lastUpdatedTime = parseTimestamp(latestReport.ut, latestReport.date_str, latestReport.time_str);
       
       locationsData = Object.entries(districtCoordinates).slice(0, 10).map(([district, coords], idx) => {
-        const baseWaterLevel = 0.5 + Math.random() * 2.5;
+        // Use district index for consistent water levels
+        const waterLevels = [2.5, 2.3, 1.6, 2.2, 1.4, 2.3, 2.0, 2.7, 2.6, 1.9];
+        const baseWaterLevel = waterLevels[idx] || 1.5;
         const remarks = baseWaterLevel > 2 ? "Flood warning issued" : "Normal conditions";
         const severity = calculateSeverity(baseWaterLevel, remarks);
         
@@ -184,7 +189,7 @@ serve(async (req) => {
           coordinates: coords,
           severity,
           waterLevel: parseFloat(baseWaterLevel.toFixed(2)),
-          affectedFamilies: estimateAffectedFamilies(severity),
+          affectedFamilies: estimateAffectedFamilies(severity, district),
           lastUpdated: lastUpdatedTime,
           description: remarks
         };
