@@ -127,9 +127,9 @@ serve(async (req) => {
       })
       .filter(record => 
         record.description?.toLowerCase().includes('water level') && 
-        record.date_str === '2025-12-17'
+        (record.date_str === '2025-12-17' || record.date_str === '2025-12-18')
       )
-      .slice(0, 5); // Get reports from 12/17/2025
+      .slice(0, 10); // Get reports from 12/17/2025 and 12/18/2025
 
     console.log(`Found ${waterLevelReports.length} recent water level reports`);
 
