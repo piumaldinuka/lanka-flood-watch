@@ -12,9 +12,17 @@ export interface FloodLocation {
   description?: string;
 }
 
+export interface HistoricalTrendPoint {
+  date: string;
+  totalAffected: number;
+  critical: number;
+  high: number;
+}
+
 export interface FloodData {
   locations: FloodLocation[];
   lastSync: string;
   totalAffected: number;
   criticalAreas: number;
+  historicalTrend?: HistoricalTrendPoint[];
 }

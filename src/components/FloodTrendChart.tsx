@@ -12,18 +12,32 @@ import {
   AreaChart,
 } from "recharts";
 import { FloodData } from "@/types/flood";
+import { format, parseISO } from "date-fns";
 
 interface FloodTrendChartProps {
   floodData: FloodData;
 }
 
-// Generate historical trend data based on current data
-const generateHistoricalData = (currentTotal: number) => {
+// Format the trend data for the chart
+const formatTrendData = (floodData: FloodData) => {
+  if (floodData.historicalTrend && floodData.historicalTrend.length > 0) {
+    return floodData.historicalTrend.map(point => ({
+      date: format(parseISO(point.date), 'MMM d'),
+      fullDate: point.date,
+      families: point.totalAffected,
+      critical: point.critical,
+      high: point.high,
+    }));
+  }
+  
+  // Fallback to generated data if no historical data
+  const currentTotal = floodData.totalAffected;
   const days = ['Dec 12', 'Dec 13', 'Dec 14', 'Dec 15', 'Dec 16', 'Dec 17', 'Dec 18'];
   const baseValues = [820, 950, 1100, 980, 1050, 1120, currentTotal];
   
   return days.map((day, index) => ({
     date: day,
+    fullDate: `2025-12-${12 + index}`,
     families: baseValues[index],
     critical: Math.floor(baseValues[index] * 0.15),
     high: Math.floor(baseValues[index] * 0.35),
@@ -31,7 +45,7 @@ const generateHistoricalData = (currentTotal: number) => {
 };
 
 export const FloodTrendChart = ({ floodData }: FloodTrendChartProps) => {
-  const trendData = generateHistoricalData(floodData.totalAffected);
+  const trendData = formatTrendData(floodData);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
