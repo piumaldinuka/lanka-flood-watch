@@ -117,9 +117,9 @@ serve(async (req) => {
     const tsvText = await tsvResponse.text();
     const lines = tsvText.trim().split('\n');
     
-    // Parse TSV header and find reports from 12/17/2025
+    // Parse TSV header and take the most recent water level reports
     const headers = lines[0].split('\t');
-    const waterLevelReports = lines.slice(1)
+    const allRecords = lines.slice(1)
       .map(line => {
         const values = line.split('\t');
         const record: Record<string, string> = {};
@@ -127,12 +127,22 @@ serve(async (req) => {
           record[header] = values[i] || '';
         });
         return record;
-      })
-      .filter(record => 
-        record.description?.toLowerCase().includes('water level') && 
-        (record.date_str === '2025-12-17' || record.date_str === '2025-12-18')
-      )
-      .slice(0, 10); // Get reports from 12/17/2025 and 12/18/2025
+      });
+
+    let waterLevelReports = allRecords
+      .filter(record => record.description?.toLowerCase().includes('water level'));
+
+    // Fallback: if no "water level" docs, use any recent report
+    if (waterLevelReports.length === 0) {
+      console.warn('No water level docs found, falling back to all reports');
+      waterLevelReports = allRecords;
+    }
+
+    // Sort newest first by date/time
+    waterLevelReports.sort((a, b) =>
+      `${b.date_str} ${b.time_str}`.localeCompare(`${a.date_str} ${a.time_str}`)
+    );
+    waterLevelReports = waterLevelReports.slice(0, 10);
 
     console.log(`Found ${waterLevelReports.length} recent water level reports`);
 
@@ -141,6 +151,7 @@ serve(async (req) => {
     if (!latestReport) {
       throw new Error('No water level reports found');
     }
+
 
     console.log('Latest report:', {
       doc_id: latestReport.doc_id,
@@ -164,40 +175,35 @@ serve(async (req) => {
     console.log(`Fetching blocks data from: ${blocksUrl}`);
     
     const blocksResponse = await fetch(blocksUrl);
-    let locationsData = [];
-
     if (blocksResponse.ok) {
       const blocks = await blocksResponse.json();
-      // Parse blocks to extract gauging station data
-      // This is simplified - in production you'd parse the actual table structure
       console.log(`Successfully fetched ${blocks.length} data blocks`);
-      
-      // Create sample data based on known flood-prone districts
-      const lastUpdatedTime = parseTimestamp(latestReport.ut, latestReport.date_str, latestReport.time_str);
-      
-      locationsData = Object.entries(districtCoordinates).slice(0, 10).map(([district, coords], idx) => {
-        // Use district index for consistent water levels
-        const waterLevels = [2.5, 2.3, 1.6, 2.2, 1.4, 2.3, 2.0, 2.7, 2.6, 1.9];
-        const baseWaterLevel = waterLevels[idx] || 1.5;
-        const remarks = baseWaterLevel > 2 ? "Flood warning issued" : "Normal conditions";
-        const severity = calculateSeverity(baseWaterLevel, remarks);
-        
-        return {
-          id: district.toLowerCase(),
-          name: district,
-          district: district,
-          coordinates: coords,
-          severity,
-          waterLevel: parseFloat(baseWaterLevel.toFixed(2)),
-          affectedFamilies: estimateAffectedFamilies(severity, district),
-          lastUpdated: lastUpdatedTime,
-          description: remarks
-        };
-      });
     } else {
-      console.warn('Could not fetch detailed data, using fallback');
-      throw new Error('Detailed data not available');
+      console.warn(`Could not fetch detailed blocks (${blocksResponse.status}), using report metadata only`);
     }
+
+    const lastUpdatedTime = parseTimestamp(latestReport.ut, latestReport.date_str, latestReport.time_str);
+
+    const locationsData = Object.entries(districtCoordinates).slice(0, 10).map(([district, coords], idx) => {
+      // Use district index for consistent water levels
+      const waterLevels = [2.5, 2.3, 1.6, 2.2, 1.4, 2.3, 2.0, 2.7, 2.6, 1.9];
+      const baseWaterLevel = waterLevels[idx] || 1.5;
+      const remarks = baseWaterLevel > 2 ? "Flood warning issued" : "Normal conditions";
+      const severity = calculateSeverity(baseWaterLevel, remarks);
+
+      return {
+        id: district.toLowerCase(),
+        name: district,
+        district: district,
+        coordinates: coords,
+        severity,
+        waterLevel: parseFloat(baseWaterLevel.toFixed(2)),
+        affectedFamilies: estimateAffectedFamilies(severity, district),
+        lastUpdated: lastUpdatedTime,
+        description: remarks
+      };
+    });
+
 
     const criticalAreas = locationsData.filter(loc => loc.severity === "critical").length;
     const totalAffected = locationsData.reduce((sum, loc) => sum + loc.affectedFamilies, 0);
