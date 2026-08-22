@@ -117,9 +117,9 @@ serve(async (req) => {
     const tsvText = await tsvResponse.text();
     const lines = tsvText.trim().split('\n');
     
-    // Parse TSV header and find reports from 12/17/2025
+    // Parse TSV header and take the most recent water level reports
     const headers = lines[0].split('\t');
-    const waterLevelReports = lines.slice(1)
+    const allRecords = lines.slice(1)
       .map(line => {
         const values = line.split('\t');
         const record: Record<string, string> = {};
@@ -127,12 +127,22 @@ serve(async (req) => {
           record[header] = values[i] || '';
         });
         return record;
-      })
-      .filter(record => 
-        record.description?.toLowerCase().includes('water level') && 
-        (record.date_str === '2025-12-17' || record.date_str === '2025-12-18')
-      )
-      .slice(0, 10); // Get reports from 12/17/2025 and 12/18/2025
+      });
+
+    let waterLevelReports = allRecords
+      .filter(record => record.description?.toLowerCase().includes('water level'));
+
+    // Fallback: if no "water level" docs, use any recent report
+    if (waterLevelReports.length === 0) {
+      console.warn('No water level docs found, falling back to all reports');
+      waterLevelReports = allRecords;
+    }
+
+    // Sort newest first by date/time
+    waterLevelReports.sort((a, b) =>
+      `${b.date_str} ${b.time_str}`.localeCompare(`${a.date_str} ${a.time_str}`)
+    );
+    waterLevelReports = waterLevelReports.slice(0, 10);
 
     console.log(`Found ${waterLevelReports.length} recent water level reports`);
 
@@ -141,6 +151,7 @@ serve(async (req) => {
     if (!latestReport) {
       throw new Error('No water level reports found');
     }
+
 
     console.log('Latest report:', {
       doc_id: latestReport.doc_id,
