@@ -226,15 +226,14 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error fetching DMC data:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Flood data is temporarily unavailable. Please try again later.' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 503,
       }
     );
   }
+
 });
